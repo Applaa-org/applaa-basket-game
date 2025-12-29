@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BASKET GAME</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Start Screen */
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #startScreen h1 {
+            font-size: 64px;
+            color: white;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .emoji-basket {
+            font-size: 80px;
+            margin-bottom: 30px;
+        }
+
+        .instructions {
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            padding: 0 40px;
+        }
+
+        .stats-display {
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 15px 30px;
+            margin-bottom: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .stats-display h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .stats-display p {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+
+        .player-input {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .player-input label {
+            color: white;
+            font-size: 18px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .player-input input {
+            padding: 12px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 25px;
+            width: 250px;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn {
+            padding: 15px 50px;
+            font-size: 24px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(17,153,142,0.4);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(17,153,142,0.5);
+        }
+
+        .btn-close {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+            padding: 10px 30px;
+            font-size: 18px;
+        }
+
+        /* Game HUD */
+        #gameHUD {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+            z-index: 5;
+        }
+
+        .target-display {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .target-display span {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .target-emoji {
+            font-size: 36px;
+        }
+
+        .score-display {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 10px 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .score-display .current-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .score-display .high-score {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .progress-container {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 5px;
+            z-index: 5;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 25px;
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+            border-radius: 12px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Result Screen */
+        #resultScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .result-content {
+            background: white;
+            border-radius: 30px;
+            padding: 40px 60px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .result-content h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .result-content.win h2 {
+            color: #11998e;
+        }
+
+        .result-content.lose h2 {
+            color: #eb3349;
+        }
+
+        .result-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .result-stats {
+            margin: 20px 0;
+            font-size: 20px;
+            color: #555;
+        }
+
+        .result-stats p {
+            margin: 10px 0;
+        }
+
+        .new-high-score {
+            color: #f5576c;
+            font-weight: bold;
+            font-size: 24px;
+            animation: pulse 0.5s ease infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 20px;
+            max-width: 300px;
+        }
+
+        .leaderboard h4 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .leaderboard-item:nth-child(odd) {
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 820px) {
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            #startScreen h1 {
+                font-size: 42px;
+            }
+
+            .instructions {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Start Screen -->
+        <div id="startScreen">
+            <h1>🧺 BASKET GAME</h1>
+            <div class="emoji-basket">🍎🍊🍋🍇🍓</div>
+            
+            <div class="stats-display">
+                <h3>📊 Your Stats</h3>
+                <p id="displayHighScore">High Score: 0</p>
+                <p id="displayLastPlayer">Last Player: ---</p>
+            </div>
+            
+            <div class="instructions">
+                <p>Catch ONLY the target object to fill your basket!</p>
+                <p>🎮 Use Arrow Keys or A/D to move | Touch to drag on mobile</p>
+            </div>
+            
+            <div class="player-input">
+                <label for="playerName">Enter Your Name:</label>
+                <input type="text" id="playerName" placeholder="Player" maxlength="15">
+            </div>
+            
+            <div id="leaderboardStart" class="leaderboard" style="display: none;">
+                <h4>🏆 Top Scores</h4>
+                <div id="leaderboardList"></div>
+            </div>
+            
+            <button class="btn btn-start" id="startBtn">▶️ START GAME</button>
+            <button class="btn btn-close" id="closeBtn">✖️ Close</button>
+        </div>
+        
+        <!-- Game HUD -->
+        <div id="gameHUD">
+            <div class="target-display">
+                <span>Target:</span>
+                <span class="target-emoji" id="targetEmoji">🍎</span>
+                <span id="targetName">Apple</span>
+            </div>
+            <div class="score-display">
+                <div class="current-score" id="currentScore">Score: 0</div>
+                <div class="high-score" id="hudHighScore">Best: 0</div>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+        
+        <!-- Result Screen -->
+        <div id="resultScreen">
+            <div class="result-content" id="resultContent">
+                <div class="result-emoji" id="resultEmoji">🎉</div>
+                <h2 id="resultTitle">YOU WIN!</h2>
+                <div class="result-stats">
+                    <p id="finalScore">Final Score: 0</p>
+                    <p id="objectsCaught">Objects Caught: 0</p>
+                    <p id="newHighScoreText" class="new-high-score" style="display: none;">🌟 NEW HIGH SCORE! 🌟</p>
+                </div>
+                <button class="btn btn-start" id="restartBtn">🔄 PLAY AGAIN</button>
+                <button class="btn btn-close" id="menuBtn">🏠 MAIN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME CONSTANTS ====================
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 600;
+        const BASKET_WIDTH = 100;
+        const BASKET_HEIGHT = 60;
+        const OBJECT_SIZE = 40;
+        const BASKET_CAPACITY = 10; // Objects needed to win
+        const SPAWN_INTERVAL = 800; // ms between spawns
+        const FALL_SPEED_MIN = 2;
+        const FALL_SPEED_MAX = 4;
+        const GAME_ID = 'basket-game';
+
+        // ==================== GAME OBJECTS ====================
+        const FALLING_OBJECTS = [
+            { emoji: '🍎', name: 'Apple', color: '#ff6b6b' },
+            { emoji: '🍊', name: 'Orange', color: '#ffa502' },
+            { emoji: '🍋', name: 'Lemon', color: '#ffd93d' },
+            { emoji: '🍇', name: 'Grapes', color: '#a855f7' },
+            { emoji: '🍓', name: 'Strawberry', color: '#ef4444' },
+            { emoji: '🍌', name: 'Banana', color: '#facc15' },
+            { emoji: '🍉', name: 'Watermelon', color: '#22c55e' },
+            { emoji: '🥝', name: 'Kiwi', color: '#84cc16' },
+            { emoji: '🍑', name: 'Peach', color: '#fb923c' },
+            { emoji: '🫐', name: 'Blueberry', color: '#6366f1' }
+        ];
+
+        // ==================== GAME STATE ====================
+        let canvas, ctx;
+        let gameState = 'start'; // start, playing, result
+        let basket = { x: 350, y: 520, width: BASKET_WIDTH, height: BASKET_HEIGHT };
+        let fallingObjects = [];
+        let targetObject = null;
+        let score = 0;
+        let basketFill = 0;
+        let objectsCaught = 0;
+        let lastSpawnTime = 0;
+        let animationId = null;
+        let playerName = 'Player';
+        let highScore = 0;
+        let scores = [];
+        let lastPlayerName = '';
+
+        // Touch/Mouse controls
+        let isDragging = false;
+        let dragOffset = 0;
+
+        // ==================== DOM ELEMENTS ====================
+        const startScreen = document.getElementById('startScreen');
+        const gameHUD = document.getElementById('gameHUD');
+        const progressContainer = document.getElementById('progressContainer');
+        const resultScreen = document.getElementById('resultScreen');
+        const playerNameInput = document.getElementById('playerName');
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+
+            // STEP 1: Initialize high score display to 0 immediately
+            document.getElementById('displayHighScore').textContent = 'High Score: 0';
+            document.getElementById('hudHighScore').textContent = 'Best: 0';
+            document.getElementById('displayHighScore').style.display = 'block';
+
+            // STEP 2: Load game data from localStorage
+            loadGameData();
+
+            // Event listeners
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('closeBtn').addEventListener('click', closeGame);
+            document.getElementById('restartBtn').addEventListener('click', restartGame);
+            document.getElementById('menuBtn').addEventListener('click', goToMenu);
+
+            // Keyboard controls
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+
+            // Touch/Mouse controls
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
+
+            // Draw initial screen
+            drawBackground();
+        }
+
+        // ==================== LOCAL STORAGE ====================
+        function loadGameData() {
+            // Request data from Applaa storage
+            window.parent.postMessage({
+                type: 'applaa-game-load-data',
+                gameId: GAME_ID
+            }, '*');
+
+            // Listen for response
+            window.addEventListener('message', handleStorageMessage);
+
+            // Also try localStorage directly as fallback
+            try {
+                const data = localStorage.getItem(`applaa-game-data-${GAME_ID}`);
+                if (data) {
+                    const gameData = JSON.parse(data);
+                    updateDisplayWithData(gameData);
+                }
+            } catch (e) {
+                console.log('Using parent storage');
+            }
+        }
+
+        function handleStorageMessage(event) {
+            if (event.data.type === 'applaa-game-data-loaded') {
+                updateDisplayWithData(event.data.data);
+            } else if (event.data.type === 'applaa-game-score-saved') {
+                updateDisplayWithData(event.data.data);
+            }
+        }
+
+        function updateDisplayWithData(gameData) {
+            if (gameData) {
+                highScore = gameData.highScore || 0;
+                lastPlayerName = gameData.lastPlayerName || '';
+                scores = gameData.scores || [];
+
+                // STEP 3: Update all high score displays
+                document.getElementById('displayHighScore').textContent = 'High Score: ' + highScore.toLocaleString();
+                document.getElementById('hudHighScore').textContent = 'Best: ' + highScore.toLocaleString();
+                
+                if (lastPlayerName) {
+                    document.getElementById('displayLastPlayer').textContent = 'Last Player: ' + lastPlayerName;
+                    playerNameInput.value = lastPlayerName;
+                }
+
+                // Display leaderboard
+                displayLeaderboard();
+            }
+        }
+
+        function displayLeaderboard() {
+            const leaderboardContainer = document.getElementById('leaderboardStart');
+            const leaderboardList = document.getElementById('leaderboardList');
+            
+            if (scores.length > 0) {
+                leaderboardContainer.style.display = 'block';
+                leaderboardList.innerHTML = '';
+                
+                const topScores = scores.slice(0, 5);
+                topScores.forEach((score, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    item.innerHTML = `<span>${index + 1}. ${score.playerName}</span><span>${score.score.toLocaleString()}</span>`;
+                    leaderboardList.appendChild(item);
+                });
+            } else {
+                leaderboardContainer.style.display = 'none';
+            }
+        }
+
+        function saveScore(name, finalScore) {
+            // Save to Applaa storage
+            window.parent.postMessage({
+                type: 'applaa-game-save-score',
+                gameId: GAME_ID,
+                playerName: name,
+                score: finalScore
+            }, '*');
+
+            // Also save to localStorage as fallback
+            try {
+                let data = localStorage.getItem(`applaa-game-data-${GAME_ID}`);
+                let gameData = data ? JSON.parse(data) : { scores: [], highScore: 0 };
+                
+                gameData.scores.push({
+                    playerName: name,
+                    score: finalScore,
+                    timestamp: new Date().toISOString()
+                });
+                
+                gameData.scores.sort((a, b) => b.score - a.score);
+                gameData.scores = gameData.scores.slice(0, 10);
+                
+                if (finalScore > gameData.highScore) {
+                    gameData.highScore = finalScore;
+                }
+                
+                gameData.lastPlayerName = name;
+                
+                localStorage.setItem(`applaa-game-data-${GAME_ID}`, JSON.stringify(gameData));
+                
+                // Update local variables
+                highScore = gameData.highScore;
+                scores = gameData.scores;
+            } catch (e) {
+                console.log('Using parent storage only');
+            }
+        }
+
+        // ==================== GAME CONTROLS ====================
+        let keys = { left: false, right: false };
+
+        function handleKeyDown(e) {
+            if (gameState !== 'playing') return;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys.left = true;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys.right = true;
+            }
+        }
+
+        function handleKeyUp(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys.left = false;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys.right = false;
+            }
+        }
+
+        function handleMouseDown(e) {
+            if (gameState !== 'playing') return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (CANVAS_WIDTH / rect.width);
+            const y = (e.clientY - rect.top) * (CANVAS_HEIGHT / rect.height);
+            
+            if (y > basket.y - 20) {
+                isDragging = true;
+                dragOffset = x - basket.x;
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging || gameState !== 'playing') return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (CANVAS_WIDTH / rect.width);
+            basket.x = Math.max(0, Math.min(CANVAS_WIDTH - basket.width, x - dragOffset));
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (gameState !== 'playing') return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) * (CANVAS_WIDTH / rect.width);
+            isDragging = true;
+            dragOffset = x - basket.x;
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!isDragging || gameState !== 'playing') return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) * (CANVAS_WIDTH / rect.width);
+            basket.x = Math.max(0, Math.min(CANVAS_WIDTH - basket.width, x - dragOffset));
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            isDragging = false;
+        }
+
+        // ==================== GAME FUNCTIONS ====================
+        function startGame() {
+            playerName = playerNameInput.value.trim() || 'Player';
+            gameState = 'playing';
+            
+            // Reset game state
+            score = 0;
+            basketFill = 0;
+            objectsCaught = 0;
+            fallingObjects = [];
+            basket.x = (CANVAS_WIDTH - basket.width) / 2;
+            lastSpawnTime = 0;
+            
+            // Select random target object
+            targetObject = FALLING_OBJECTS[Math.floor(Math.random() * FALLING_OBJECTS.length)];
+            
+            // Update UI
+            document.getElementById('targetEmoji').textContent = targetObject.emoji;
+            document.getElementById('targetName').textContent = targetObject.name;
+            document.getElementById('currentScore').textContent = 'Score: 0';
+            document.getElementById('hudHighScore').textContent = 'Best: ' + highScore.toLocaleString();
+            updateProgressBar();
+            
+            // Show game UI
+            startScreen.style.display = 'none';
+            gameHUD.style.display = 'flex';
+            progressContainer.style.display = 'block';
+            resultScreen.style.display = 'none';
+            
+            // Start game loop
+            if (animationId) cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function closeGame() {
+            window.parent.postMessage({ type: 'close-game' }, '*');
+        }
+
+        function restartGame() {
+            resultScreen.style.display = 'none';
+            startGame();
+        }
+
+        function goToMenu() {
+            gameState = 'start';
+            resultScreen.style.display = 'none';
+            gameHUD.style.display = 'none';
+            progressContainer.style.display = 'none';
+            startScreen.style.display = 'flex';
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            // Reload saved data
+            loadGameData();
+        }
+
+        function showResult(won) {
+            gameState = 'result';
+            
+            const resultContent = document.getElementById('resultContent');
+            const resultEmoji = document.getElementById('resultEmoji');
+            const resultTitle = document.getElementById('resultTitle');
+            const finalScoreText = document.getElementById('finalScore');
+            const objectsCaughtText = document.getElementById('objectsCaught');
+            const newHighScoreText = document.getElementById('newHighScoreText');
+            
+            if (won) {
+                resultContent.className = 'result-content win';
+                resultEmoji.textContent = '🎉🏆🎉';
+                resultTitle.textContent = 'YOU WIN!';
+            } else {
+                resultContent.className = 'result-content lose';
+                resultEmoji.textContent = '😢';
+                resultTitle.textContent = 'GAME OVER';
+            }
+            
+            finalScoreText.textContent = `Final Score: ${score.toLocaleString()}`;
+            objectsCaughtText.textContent = `${targetObject.emoji} Caught: ${objectsCaught}`;
+            
+            // Check for new high score
+            const isNewHighScore = score > highScore;
+            if (isNewHighScore) {
+                newHighScoreText.style.display = 'block';
+                highScore = score;
+            } else {
+                newHighScoreText.style.display = 'none';
+            }
+            
+            // Save score to localStorage
+            saveScore(playerName, score);
+            
+            // Update all displays
+            document.getElementById('displayHighScore').textContent = 'High Score: ' + highScore.toLocaleString();
+            document.getElementById('hudHighScore').textContent = 'Best: ' + highScore.toLocaleString();
+            
+            resultScreen.style.display = 'flex';
+        }
+
+        // ==================== GAME LOOP ====================
+        function gameLoop(timestamp) {
+            if (gameState !== 'playing') return;
+            
+            update(timestamp);
+            render();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function update(timestamp) {
+            // Move basket with keyboard
+            const basketSpeed = 8;
+            if (keys.left) {
+                basket.x = Math.max(0, basket.x - basketSpeed);
+            }
+            if (keys.right) {
+                basket.x = Math.min(CANVAS_WIDTH - basket.width, basket.x + basketSpeed);
+            }
+            
+            // Spawn new objects
+            if (!lastSpawnTime || timestamp - lastSpawnTime > SPAWN_INTERVAL) {
+                spawnObject();
+                lastSpawnTime = timestamp;
+            }
+            
+            // Update falling objects
+            for (let i = fallingObjects.length - 1; i >= 0; i--) {
+                const obj = fallingObjects[i];
+                obj.y += obj.speed;
+                
+                // Check collision with basket
+                if (checkCollision(obj, basket)) {
+                    if (obj.name === targetObject.name) {
+                        // Correct object caught!
+                        score += 100;
+                        basketFill++;
+                        objectsCaught++;
+                        document.getElementById('currentScore').textContent = 'Score: ' + score.toLocaleString();
+                        updateProgressBar();
+                        
+                        // Check win condition
+                        if (basketFill >= BASKET_CAPACITY) {
+                            showResult(true);
+                            return;
+                        }
+                    } else {
+                        // Wrong object - small penalty
+                        score = Math.max(0, score - 10);
+                        document.getElementById('currentScore').textContent = 'Score: ' + score.toLocaleString();
+                    }
+                    
+                    fallingObjects.splice(i, 1);
+                    continue;
+                }
+                
+                // Remove objects that fall off screen
+                if (obj.y > CANVAS_HEIGHT) {
+                    // Missed a correct object
+                    if (obj.name === targetObject.name) {
+                        score = Math.max(0, score - 25);
+                        document.getElementById('currentScore').textContent = 'Score: ' + score.toLocaleString();
+                    }
+                    fallingObjects.splice(i, 1);
+                }
+            }
+        }
+
+        function spawnObject() {
+            // Higher chance to spawn target object
+            const isTarget = Math.random() < 0.35;
+            let objectType;
+            
+            if (isTarget) {
+                objectType = targetObject;
+            } else {
+                // Pick a random non-target object
+                const nonTargetObjects = FALLING_OBJECTS.filter(o => o.name !== targetObject.name);
+                objectType = nonTargetObjects[Math.floor(Math.random() * nonTargetObjects.length)];
+            }
+            
+            const obj = {
+                x: Math.random() * (CANVAS_WIDTH - OBJECT_SIZE),
+                y: -OBJECT_SIZE,
+                size: OBJECT_SIZE,
+                speed: FALL_SPEED_MIN + Math.random() * (FALL_SPEED_MAX - FALL_SPEED_MIN),
+                emoji: objectType.emoji,
+                name: objectType.name,
+                color: objectType.color,
+                rotation: 0,
+                rotationSpeed:(Math.random() - 0.5) * 0.1
+            };
+            
+            fallingObjects.push(obj);
+        }
+
+        function checkCollision(obj, basket) {
+            return obj.x < basket.x + basket.width &&
+                   obj.x + obj.size > basket.x &&
+                   obj.y + obj.size > basket.y &&
+                   obj.y < basket.y + basket.height;
+        }
+
+        function updateProgressBar() {
+            const percentage = Math.min(100, (basketFill / BASKET_CAPACITY) * 100);
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = Math.round(percentage) + '%';
+        }
+
+        // ==================== RENDERING ====================
+        function render() {
+            // Clear canvas
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Draw background
+            drawBackground();
+            
+            // Draw falling objects
+            drawFallingObjects();
+            
+            // Draw basket
+            drawBasket();
+            
+            // Draw particles/effects
+            drawEffects();
+        }
+
+        function drawBackground() {
+            // Sky gradient
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+            skyGradient.addColorStop(0, '#87CEEB');
+            skyGradient.addColorStop(0.6, '#98FB98');
+            skyGradient.addColorStop(1, '#90EE90');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Draw clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            drawCloud(100, 80, 60);
+            drawCloud(300, 50, 80);
+            drawCloud(550, 100, 70);
+            drawCloud(700, 60, 50);
+            
+            // Draw grass at bottom
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 30);
+            
+            // Draw grass blades
+            ctx.strokeStyle = '#32CD32';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < CANVAS_WIDTH; i += 15) {
+                ctx.beginPath();
+                ctx.moveTo(i, CANVAS_HEIGHT - 30);
+                ctx.lineTo(i + 5, CANVAS_HEIGHT - 45);
+                ctx.stroke();
+            }
+        }
+
+        function drawCloud(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.4, y - size * 0.2, size * 0.4, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.8, y, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.4, y + size * 0.2, size * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawFallingObjects() {
+            fallingObjects.forEach(obj => {
+                ctx.save();
+                ctx.translate(obj.x + obj.size / 2, obj.y + obj.size / 2);
+                obj.rotation += obj.rotationSpeed;
+                ctx.rotate(obj.rotation);
+                
+                // Draw shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.beginPath();
+                ctx.ellipse(3, 3, obj.size / 2.5, obj.size / 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw emoji
+                ctx.font = `${obj.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(obj.emoji, 0, 0);
+                
+                // Highlight if target object
+                if (obj.name === targetObject.name) {
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, obj.size / 2 + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            });
+        }
+
+        function drawBasket() {
+            const bx = basket.x;
+            const by = basket.y;
+            const bw = basket.width;
+            const bh = basket.height;
+            
+            // Basket shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(bx + bw / 2, by + bh + 5, bw / 2, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Basket body (woven pattern)
+            const basketGradient = ctx.createLinearGradient(bx, by, bx, by + bh);
+            basketGradient.addColorStop(0, '#D2691E');
+            basketGradient.addColorStop(0.5, '#8B4513');
+            basketGradient.addColorStop(1, '#654321');
+            
+            ctx.fillStyle = basketGradient;
+            ctx.beginPath();
+            ctx.moveTo(bx + 10, by);
+            ctx.lineTo(bx + bw - 10, by);
+            ctx.lineTo(bx + bw, by + bh);
+            ctx.lineTo(bx, by + bh);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Basket rim
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(bx - 5, by - 8, bw + 10, 12);
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(bx - 5, by - 8, bw + 10, 12);
+            
+            // Woven pattern
+            ctx.strokeStyle = '#DEB887';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 5; i++) {
+                const yOffset = by + 10 + i * 12;
+                ctx.beginPath();
+                ctx.moveTo(bx + 5, yOffset);
+                ctx.lineTo(bx + bw - 5, yOffset);
+                ctx.stroke();
+            }
+            
+            // Vertical weave
+            for (let i = 0; i < 6; i++) {
+                const xOffset = bx + 15 + i * 15;
+                ctx.beginPath();
+                ctx.moveTo(xOffset, by + 5);
+                ctx.lineTo(xOffset + 3, by + bh - 5);
+                ctx.stroke();
+            }
+            
+            // Draw collected items indicator
+            const fillLevel = basketFill / BASKET_CAPACITY;
+            if (fillLevel > 0) {
+                ctx.fillStyle = targetObject.color + '80';
+                const fillHeight = fillLevel * (bh - 15);
+                ctx.fillRect(bx + 5, by + bh - fillHeight - 5, bw - 10, fillHeight);
+                
+                // Draw target emoji in basket
+                if (basketFill > 0) {
+                    ctx.font = '24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(targetObject.emoji, bx + bw / 2, by + bh - 15);
+                }
+            }
+        }
+
+        function drawEffects() {
+            // Add any particle effects here if needed
+        }
+
+        // ==================== START THE GAME ====================
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

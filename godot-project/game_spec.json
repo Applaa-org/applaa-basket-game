@@ -1,0 +1,45 @@
+{
+  "game": {
+    "name": "BASKET GAME",
+    "type": "2D",
+    "genre": "arcade",
+    "description": "Catch falling fruits in your basket! Only catch the target object to fill your basket and win."
+  },
+  "settings": {
+    "window": {
+      "width": 800,
+      "height": 600
+    },
+    "physics": {
+      "gravity": 200
+    }
+  },
+  "player": {
+    "name": "Basket",
+    "speed": 400,
+    "abilities": ["move_left", "move_right"]
+  },
+  "entities": {
+    "collectibles": [
+      { "name": "Apple", "emoji": "🍎", "value": 100 },
+      { "name": "Orange", "emoji": "🍊", "value": 100 },
+      { "name": "Lemon", "emoji": "🍋", "value": 100 },
+      { "name": "Grapes", "emoji": "🍇", "value": 100 },
+      { "name": "Strawberry", "emoji": "🍓", "value": 100 },
+      { "name": "Banana", "emoji": "🍌", "value": 100 },
+      { "name": "Watermelon", "emoji": "🍉", "value": 100 },
+      { "name": "Kiwi", "emoji": "🥝", "value": 100 },
+      { "name": "Peach", "emoji": "🍑", "value": 100 },
+      { "name": "Blueberry", "emoji": "🫐", "value": 100 }
+    ]
+  },
+  "logic": {
+    "winCondition": "fill_basket",
+    "basketCapacity": 10,
+    "scoring": {
+      "correctObject": 100,
+      "wrongObject": -10,
+      "missedTarget": -25
+    }
+  }
+}
